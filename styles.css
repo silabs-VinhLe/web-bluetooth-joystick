@@ -1,0 +1,47 @@
+#container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  background-color: #333333;
+  font-family: Roboto;
+}
+
+#statusText {
+  position: absolute;
+  bottom: 50%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  margin: 0 auto;
+  color: #fff;
+  font-size: 25px;
+  width: 160px;
+  overflow-x: visible;
+  cursor: default;
+  padding: 12px 0;
+  -webkit-user-select: none;
+}
+
+#joyStick {
+  position: absolute;
+  bottom: 20%;
+  text-align:center;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  padding: 12px 12px;
+}
+
+#joyStickBase {
+  position: absolute;
+  bottom: 20%;
+  border: 1px solid blue;
+  width: 128px;
+  text-align:center;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  padding: 12px 0;
+}
