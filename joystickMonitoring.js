@@ -11,86 +11,68 @@
       this.server = null;
       this._characteristics = new Map();
     }
-    connect() {
-      return navigator.bluetooth.requestDevice({filters:[
+    async connect() {
+      let device = await navigator.bluetooth.requestDevice({filters:[
         {name:[ 'joystick_7seg' ]},
         {services: [JOYSTICK_SERVICE]}
       ]})
-      .then(device => {
-        console.log('> Found ' + device.name);
-        console.log('Connecting to GATT Server...');
-        this.device = device;
-        return device.gatt.connect();
-      })
-      .then(server => {
-        this.server = server;
-        return server.getPrimaryService(JOYSTICK_SERVICE);
-      })
-      .then(service => {
-        console.log('> Found service: ' + service.uuid);
-        return this._cacheCharacteristics(service,
-                                          [JOYSTICK_VALUE_X_CHARACTERISTIC,
-                                           JOYSTICK_VALUE_Y_CHARACTERISTIC]
-        );
-      })
+      console.log('> Found ' + device.name);
+      console.log('Connecting to GATT Server...');
+      this.device = device;
+      let server = await device.gatt.connect();
+      this.server = server;
+      let service = await server.getPrimaryService(JOYSTICK_SERVICE);
+      console.log('> Found service: ' + service.uuid);
+      return await this._cacheCharacteristics(service,
+                                              [JOYSTICK_VALUE_X_CHARACTERISTIC,
+                                               JOYSTICK_VALUE_Y_CHARACTERISTIC]
+      );
     }
 
-    /* Proximity Tracking Service */
-
-    startNotificationsPosX() {
-      return this._startNotifications(JOYSTICK_VALUE_X_CHARACTERISTIC);
+    /* Joystick Service */
+    async startNotificationsPosX() {
+      return await this._startNotifications(JOYSTICK_VALUE_X_CHARACTERISTIC);
     }
-    startNotificationsPosY() {
-      return this._startNotifications(JOYSTICK_VALUE_Y_CHARACTERISTIC);
+    async startNotificationsPosY() {
+      return await this._startNotifications(JOYSTICK_VALUE_Y_CHARACTERISTIC);
     }
-    stopNotificationsPosX() {
-      return this._stopNotifications(JOYSTICK_VALUE_X_CHARACTERISTIC);
+    async stopNotificationsPosX() {
+      return await this._stopNotifications(JOYSTICK_VALUE_X_CHARACTERISTIC);
     }
-    stopNotificationsPosY() {
-      return this._stopNotifications(JOYSTICK_VALUE_Y_CHARACTERISTIC);
+    async stopNotificationsPosY() {
+      return await this._stopNotifications(JOYSTICK_VALUE_Y_CHARACTERISTIC);
     }
 
     /* Utils */
-
-    _cacheCharacteristics(service, characteristicUuids) {
-      let chain = Promise.resolve();
+    async _cacheCharacteristics(service, characteristicUuids) {
       for (const index in characteristicUuids) {
-        chain = chain.then(() => {
-          return service.getCharacteristic(characteristicUuids[index])
-          .then(characteristic => {
-            console.log('> Found characteristic: ' + characteristic.uuid);
-            this._characteristics.set(characteristic.uuid, characteristic);
-          })
-        });
+        let characteristic = await service.getCharacteristic(characteristicUuids[index]);
+        console.log('> Found characteristic: ' + characteristic.uuid);
+        this._characteristics.set(characteristic.uuid, characteristic);
       }
-      return chain;
     }
-    _readCharacteristicValue(characteristicUuid) {
+    async _readCharacteristicValue(characteristicUuid) {
       let characteristic = this._characteristics.get(characteristicUuid);
-      return characteristic.readValue()
-      .then(value => {
-        // In Chrome 50+, a DataView is returned instead of an ArrayBuffer.
-        value = value.buffer ? value : new DataView(value);
-        return value;
-      });
+      let value = await characteristic.readValue()
+      // In Chrome 50+, a DataView is returned instead of an ArrayBuffer.
+      value = value.buffer ? value : new DataView(value);
+      return value;
     }
-    _writeCharacteristicValue(characteristicUuid, value) {
+    async _writeCharacteristicValue(characteristicUuid, value) {
       let characteristic = this._characteristics.get(characteristicUuid);
-      return characteristic.writeValue(value);
+      return await characteristic.writeValue(value);
     }
-    _startNotifications(characteristicUuid) {
+    async _startNotifications(characteristicUuid) {
       let characteristic = this._characteristics.get(characteristicUuid);
       // Returns characteristic to set up characteristicvaluechanged event
       // handlers in the resolved promise.
-      return characteristic.startNotifications()
-      .then(() => characteristic);
+      return await characteristic.startNotifications();
     }
-    _stopNotifications(characteristicUuid) {
+    async _stopNotifications(characteristicUuid) {
       let characteristic = this._characteristics.get(characteristicUuid);
       // Returns characteristic to remove characteristicvaluechanged event
       // handlers in the resolved promise.
-      return characteristic.stopNotifications()
-      .then(() => characteristic);
+      return await characteristic.stopNotifications()
     }
   }
 

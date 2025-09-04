@@ -1,46 +1,45 @@
 var statusText = document.querySelector('#statusText');
 let joystick = document.querySelector('#joyStick')
-window.xPosition = 0;
-window.yPosition = 0;
+window.xPosition = 127;
+window.yPosition = 127;
 
 function joystickMove(stick, xPosition, yPosition) {
+  xPosition = Math.floor((xPosition - 127) * 50 / 128);
+  yPosition = Math.floor((yPosition - 127) * 50 / 128);
   stick.style.transform = `translate3d(${xPosition}px, ${yPosition}px, 0px)`;
 }
 
 joystickMove(joystick, xPosition, yPosition);
 
-statusText.addEventListener('click', function() {
-  statusText.textContent = 'Connecting...';
-  console.log('connecting...');
-  joystickMonitoring.connect()
-  .then(() => {
+statusText.addEventListener('click', async ()  => {
+  try {
+    statusText.textContent = 'Connecting...';
+    console.log('connecting...');
+    await joystickMonitoring.connect()
     statusText.textContent = 'Connected';
-    return joystickMonitoring.startNotificationsPosX();
-  })
-  .then((handleCharX) => {
-    return handleCharX.addEventListener('characteristicvaluechanged', event => {
+    let handleCharX = await joystickMonitoring.startNotificationsPosX();
+    handleCharX.addEventListener('characteristicvaluechanged', async (event) => {
       let value = event.target.value;
+      // In Chrome 50+, a DataView is returned instead of an ArrayBuffer.
       value = value.buffer ? value : new DataView(value);
-      console.log('X: ' + value.getUint8(0));
-      xPosition = Math.floor((value.getUint8(0) - 127) * 50 / 128);
+      xPosition =  value.getUint8(0);
+      console.log('X: ' + xPosition);
       statusText.textContent = 'X: ' + xPosition + ', Y: ' + yPosition;
       joystickMove(joystick, xPosition, yPosition);
-    })
-  })
-  .then(() => joystickMonitoring.startNotificationsPosY())
-  .then((handleCharY) => {
-    return handleCharY.addEventListener('characteristicvaluechanged', event => {
+    });
+    let handleCharY = await joystickMonitoring.startNotificationsPosY();
+    handleCharY.addEventListener('characteristicvaluechanged', async (event) => {
       let value = event.target.value;
+      // In Chrome 50+, a DataView is returned instead of an ArrayBuffer.
       value = value.buffer ? value : new DataView(value);
-      console.log('Y: ' + value.getUint8(0));
-      yPosition = Math.floor((value.getUint8(0) - 127) * 50 / 128);
+      yPosition = value.getUint8(0);
+      console.log('Y: ' + yPosition);
       statusText.textContent = 'X: ' + xPosition + ', Y: ' + yPosition;
       joystickMove(joystick, xPosition, yPosition);
-    })
-  })
-  .catch(error => {
+    });
+  } catch(error) {
     statusText.textContent = error;
-  });
+  }
 });
 
 // function loop()
