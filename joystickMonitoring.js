@@ -4,6 +4,7 @@
   const JOYSTICK_SERVICE = "35a66b3c-ffa4-4689-a8a4-b547e25c677f";
   const JOYSTICK_VALUE_X_CHARACTERISTIC = "1954f9d7-5e68-40bd-88c2-c3c96c410fe0";
   const JOYSTICK_VALUE_Y_CHARACTERISTIC = "5e8f0838-b2b5-4748-9cfb-4a414a525337";
+  const JOYSTICK_BUTTON_STATUS_CHARACTERISTIC = "d369fb04-c53f-478e-97f9-054424fa7403";
 
   class joystickMonitoring {
     constructor() {
@@ -25,7 +26,8 @@
       console.log('> Found service: ' + service.uuid);
       return await this._cacheCharacteristics(service,
                                               [JOYSTICK_VALUE_X_CHARACTERISTIC,
-                                               JOYSTICK_VALUE_Y_CHARACTERISTIC]
+                                               JOYSTICK_VALUE_Y_CHARACTERISTIC,
+                                               JOYSTICK_BUTTON_STATUS_CHARACTERISTIC]
       );
     }
 
@@ -36,11 +38,17 @@
     async startNotificationsPosY() {
       return await this._startNotifications(JOYSTICK_VALUE_Y_CHARACTERISTIC);
     }
+    async startNotificationsButtonStatus() {
+      return await this._startNotifications(JOYSTICK_BUTTON_STATUS_CHARACTERISTIC);
+    }
     async stopNotificationsPosX() {
       return await this._stopNotifications(JOYSTICK_VALUE_X_CHARACTERISTIC);
     }
     async stopNotificationsPosY() {
       return await this._stopNotifications(JOYSTICK_VALUE_Y_CHARACTERISTIC);
+    }
+    async stopNotificationsButtonStatus() {
+      return await this._stopNotifications(JOYSTICK_BUTTON_STATUS_CHARACTERISTIC);
     }
 
     /* Utils */
